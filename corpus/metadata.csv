@@ -1,0 +1,45 @@
+doc_id,title,issuing_authority,effective_date,sunset_date,supersedes,version,category,num_clauses
+D001,Work From Home (WFH) Policy,Human Resources Department,2021-01-01,2022-06-30,,v1.0,WFH,4
+D002,Work From Home (WFH) Policy — Pandemic Response,Human Resources Department,2022-07-01,2023-12-31,D001,v2.0,WFH,4
+D003,WFH & Hybrid Work Policy,Human Resources Department,2024-01-01,,D002,v3.0,WFH,4
+D004,Regional WFH Exception Circular — Bengaluru Office,Bengaluru Regional HR,2023-03-01,,,v1.0,WFH,2
+D005,Leave Policy,Human Resources Department,2020-04-01,2022-03-31,,v1.0,Leave,4
+D006,Leave Policy,Human Resources Department,2022-04-01,2024-03-31,D005,v2.0,Leave,4
+D007,Leave Policy,Human Resources Department,2024-04-01,,D006,v3.0,Leave,3
+D008,Special COVID-19 Leave Circular,Human Resources Department,2021-04-01,2021-12-31,,v1.0,Leave,2
+D009,Data Retention Policy,IT Governance,2021-06-01,2023-05-31,,v1.0,DataRetention,3
+D010,Data Retention Policy,IT Governance,2023-06-01,,D009,v2.0,DataRetention,3
+D011,GDPR Data Retention Addendum (EU Clients),Legal & Compliance,2022-01-01,,,v1.0,DataRetention,2
+D012,Information Security — Password Policy,IT Security,2020-01-01,2022-12-31,,v1.0,InfoSec,3
+D013,Information Security — Password Policy,IT Security,2023-01-01,2024-06-30,D012,v2.0,InfoSec,3
+D014,Information Security — Password & MFA Policy,IT Security,2024-07-01,,D013,v3.0,InfoSec,3
+D015,Travel & Expense (T&E) Policy,Finance Department,2021-01-01,2023-03-31,,v1.0,TravelExpense,3
+D016,Travel & Expense (T&E) Policy,Finance Department,2023-04-01,,D015,v2.0,TravelExpense,3
+D017,International Travel Addendum,Finance Department,2022-01-01,,,v1.0,TravelExpense,4
+D018,Procurement Policy,Procurement Committee,2020-01-01,2022-12-31,,v1.0,Procurement,4
+D019,Procurement Policy,Procurement Committee,2023-01-01,,D018,v2.0,Procurement,4
+D020,Emergency Procurement Circular — Facility Disaster Recovery,Procurement Committee,2023-08-01,2023-10-31,,v1.0,Procurement,3
+D021,Code of Conduct,Ethics Committee,2020-01-01,2023-12-31,,v1.0,CodeOfConduct,3
+D022,Code of Conduct,Ethics Committee,2024-01-01,,D021,v2.0,CodeOfConduct,3
+D023,Bring Your Own Device (BYOD) Policy,IT Security,2021-01-01,2023-12-31,,v1.0,BYOD,2
+D024,Bring Your Own Device (BYOD) Policy,IT Security,2024-01-01,,D023,v2.0,BYOD,3
+D025,Contractor Engagement Policy,Procurement & Legal,2021-01-01,,,v1.0,Contractor,3
+D026,Contractor Data Access Circular,IT Governance & Legal,2023-05-01,,,v1.0,Contractor,3
+D027,Exit & Offboarding Policy,Human Resources Department,2020-01-01,2022-12-31,,v1.0,Exit,3
+D028,Exit & Offboarding Policy,Human Resources Department,2023-01-01,,D027,v2.0,Exit,4
+D029,WFH Equipment Allowance Circular,Finance & HR,2021-02-01,2022-06-30,,v1.0,EquipmentAllowance,1
+D030,WFH Equipment Allowance Circular,Finance & HR,2022-07-01,2024-01-31,D029,v2.0,EquipmentAllowance,2
+D031,WFH Equipment Allowance Circular,Finance & HR,2024-02-01,,D030,v3.0,EquipmentAllowance,3
+D032,Social Media & External Communication Policy,Corporate Communications & HR,2021-01-01,,,v1.0,SocialMedia,3
+D033,Whistleblower Policy,Ethics Committee,2020-06-01,,,v1.0,Whistleblower,3
+D034,Data Classification Policy,IT Governance,2022-01-01,,,v1.0,DataClassification,3
+D035,Gifts & Anti-Bribery Policy,Legal & Compliance,2021-01-01,2023-12-31,,v1.0,AntiBribery,2
+D036,Gifts & Anti-Bribery Policy,Legal & Compliance,2024-01-01,,D035,v2.0,AntiBribery,3
+D037,Parental Leave Policy,Human Resources Department,2021-01-01,2023-06-30,,v1.0,ParentalLeave,2
+D038,Parental Leave Policy,Human Resources Department,2023-07-01,,D037,v2.0,ParentalLeave,3
+D039,Background Verification Policy,HR & Legal,2020-01-01,,,v1.0,BackgroundVerification,3
+D040,Company Values & Mission Statement,Executive Office,2019-01-01,,,v1.0,NonPolicy,3
+D041,Client-Site International Travel Circular,Finance Department,2023-06-01,,,v1.0,TravelExpense,2
+D042,Sales Enablement Confidentiality Circular,Sales & Marketing,2023-09-01,,,v1.0,SalesEnablement,2
+D043,Regional Festive Gifting Circular — South Region,Regional Sales Leadership (South Region),2024-10-01,2024-11-15,,v1.0,AntiBribery,2
+D044,Field Operations Device Exemption Circular,Field Operations,2024-08-01,,,v1.0,InfoSec,2
