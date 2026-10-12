@@ -1,3 +1,14 @@
+# ── TimeMachine project-specific ignores ─────────────────────────────────────
+# Cached embedding index (auto-generated, can be rebuilt with --rebuild)
+index/
+
+# Environment variables (API keys) — never commit
+.env
+
+# Evaluation output JSON files
+eval_results*.json
+
+# ── Standard Python gitignore ─────────────────────────────────────────────────
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

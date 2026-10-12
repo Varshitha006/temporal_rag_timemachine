@@ -1,0 +1,21 @@
+# TimeMachine — Python dependencies
+# Install with: pip install -r requirements.txt
+
+# ── Core ML / Embedding ───────────────────────────────────────────────────────
+sentence-transformers>=2.0.0    # local clause embedding (all-MiniLM-L6-v2)
+scikit-learn>=1.0.0             # cosine similarity utilities
+torch>=2.0.0                    # sentence-transformers backend
+
+# ── Graph / Reasoning ─────────────────────────────────────────────────────────
+networkx>=3.0                   # Knowledge Graph of policy relationships
+
+# ── Google Gemini LLM ─────────────────────────────────────────────────────────
+google-generativeai>=0.8.0      # Gemini API client for final answer generation
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+pyyaml>=6.0                     # YAML front-matter parsing in corpus documents
+python-dotenv>=1.0.0            # Load LLM_API_KEY / LLM_MODEL from .env
+numpy>=1.24.0                   # Embedding matrix operations
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+pytest>=7.0.0                   # Unit and integration test runner

@@ -1,0 +1,1046 @@
+{
+  "total_questions": 56,
+  "retrieval_hit_at_k": 0.9285714285714286,
+  "label_accuracy": 0.8392857142857143,
+  "refusal_accuracy": 0.6666666666666666,
+  "conflict_detection": 0.6666666666666666,
+  "per_trap": {
+    "T1": {
+      "total": 1,
+      "label_acc": 1.0,
+      "retrieval_hit": 1.0
+    },
+    "T2": {
+      "total": 3,
+      "label_acc": 1.0,
+      "retrieval_hit": 1.0
+    },
+    "T3": {
+      "total": 6,
+      "label_acc": 0.8333333333333334,
+      "retrieval_hit": 0.8333333333333334
+    },
+    "T4": {
+      "total": 5,
+      "label_acc": 0.8,
+      "retrieval_hit": 1.0
+    },
+    "T5": {
+      "total": 4,
+      "label_acc": 1.0,
+      "retrieval_hit": 1.0
+    },
+    "none": {
+      "total": 37,
+      "label_acc": 0.8108108108108109,
+      "retrieval_hit": 0.918918918918919
+    }
+  },
+  "per_question": [
+    {
+      "id": "Q001",
+      "question": "How many days per week can an employee work from home?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D001:C1",
+        "D001:C2",
+        "D005:C1",
+        "D005:C2",
+        "D029:C1"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q002",
+      "question": "How many days per week can an employee work from home?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D002:C1",
+        "D002:C2",
+        "D006:C1",
+        "D006:C2",
+        "D030:C1"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q003",
+      "question": "How many days per week can an employee work from home?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D003:C1",
+        "D003:C2",
+        "D004:C1",
+        "D006:C1",
+        "D006:C2",
+        "D031:C2",
+        "D038:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q005",
+      "question": "What is the company's password policy?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "T1",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D014:C1",
+        "D014:C2",
+        "D014:C3",
+        "D025:C3",
+        "D031:C2",
+        "D032:C1",
+        "D044:C1"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q006",
+      "question": "Is multi-factor authentication (MFA) mandatory for all emplo",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "T3",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D004:C2",
+        "D013:C1",
+        "D013:C3",
+        "D025:C2",
+        "D025:C3",
+        "D028:C3",
+        "D031:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q008",
+      "question": "Is multi-factor authentication (MFA) mandatory for all emplo",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "T3",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D004:C2",
+        "D014:C2",
+        "D014:C3",
+        "D025:C2",
+        "D025:C3",
+        "D028:C3",
+        "D031:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q010",
+      "question": "How long must customer transaction data be retained for a no",
+      "gold_label": "answerable",
+      "pred_label": "conflict",
+      "trap": "none",
+      "hit": true,
+      "label_match": false,
+      "citations": [
+        "D010:C1",
+        "D010:C2",
+        "D010:C3",
+        "D011:C1",
+        "D011:C2"
+      ],
+      "answer_snippet": "[CONFLICT] A genuine conflict exists that cannot be safely auto-resolved. Surface both documents and escalate to the app"
+    },
+    {
+      "id": "Q012",
+      "question": "What is the Finance Head's procurement approval ceiling?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "T3",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D019:C1",
+        "D019:C2",
+        "D019:C3",
+        "D019:C4",
+        "D035:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q014",
+      "question": "Can an employee use company funds to purchase cryptocurrency",
+      "gold_label": "refuse",
+      "pred_label": "refuse",
+      "trap": "T4",
+      "hit": true,
+      "label_match": true,
+      "citations": [],
+      "answer_snippet": "[REFUSE] The corpus contains no policy provision for 'cryptocurrency'. Refuse the request as not covered by company poli"
+    },
+    {
+      "id": "Q015",
+      "question": "What is the policy for reimbursing employee gym memberships?",
+      "gold_label": "refuse",
+      "pred_label": "refuse",
+      "trap": "T4",
+      "hit": true,
+      "label_match": true,
+      "citations": [],
+      "answer_snippet": "[REFUSE] The corpus contains no policy provision for 'gym'. Refuse the request as not covered by company policies."
+    },
+    {
+      "id": "Q017",
+      "question": "Does the Bengaluru regional WFH exception circular apply to ",
+      "gold_label": "escalate",
+      "pred_label": "escalate",
+      "trap": "T5",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D004:C1",
+        "D004:C2",
+        "D017:C4",
+        "D025:C1",
+        "D025:C2",
+        "D025:C3",
+        "D026:C1",
+        "D028:C4",
+        "D041:C2"
+      ],
+      "answer_snippet": "[ESCALATE] The question asks about 'contractor' eligibility, which is ambiguous or undefined in the governing policy. Es"
+    },
+    {
+      "id": "Q019",
+      "question": "How many annual leave days are employees entitled to?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D005:C1",
+        "D005:C2",
+        "D005:C4",
+        "D008:C1",
+        "D027:C1"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q020",
+      "question": "How many annual leave days are employees entitled to?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D006:C1",
+        "D006:C2",
+        "D006:C3",
+        "D006:C4",
+        "D028:C1",
+        "D028:C4"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q021",
+      "question": "How many annual leave days are employees entitled to?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D003:C1",
+        "D007:C1",
+        "D007:C2",
+        "D007:C3",
+        "D028:C1",
+        "D028:C4"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q023",
+      "question": "An employee contracted COVID-19 in March 2022. Are they enti",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "T3",
+      "hit": false,
+      "label_match": true,
+      "citations": [
+        "D005:C1",
+        "D005:C2",
+        "D005:C4"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q025",
+      "question": "What is the maximum leave carry-forward allowed?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D001:C4",
+        "D006:C1",
+        "D006:C3",
+        "D006:C4",
+        "D017:C1",
+        "D037:C1"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q026",
+      "question": "What is the maximum leave carry-forward allowed?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D007:C1",
+        "D007:C2",
+        "D007:C3",
+        "D017:C1",
+        "D028:C4",
+        "D031:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q027",
+      "question": "What is the notice period for a Manager resigning?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D006:C1",
+        "D006:C2",
+        "D006:C3",
+        "D006:C4",
+        "D009:C2",
+        "D027:C1"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q029",
+      "question": "Within how many days must full and final settlement be compl",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D001:C1",
+        "D001:C4",
+        "D005:C4",
+        "D027:C1",
+        "D027:C2",
+        "D037:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q030",
+      "question": "Within how many days must full and final settlement be compl",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D003:C1",
+        "D003:C4",
+        "D006:C1",
+        "D006:C4",
+        "D028:C1",
+        "D028:C2",
+        "D028:C4",
+        "D038:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q031",
+      "question": "What is the hotel cost cap for domestic travel in metro citi",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D015:C1",
+        "D015:C2",
+        "D015:C3",
+        "D017:C2",
+        "D017:C3",
+        "D017:C4",
+        "D018:C4"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q033",
+      "question": "Can a Senior Manager fly business class for domestic travel?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D015:C1",
+        "D015:C2",
+        "D015:C3",
+        "D017:C1",
+        "D017:C4",
+        "D029:C1",
+        "D035:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q034",
+      "question": "Can a Senior Manager fly business class for domestic travel?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D002:C4",
+        "D004:C2",
+        "D016:C1",
+        "D016:C3",
+        "D017:C1",
+        "D017:C4",
+        "D035:C2",
+        "D041:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q035",
+      "question": "What is the daily meal allowance for international travel?",
+      "gold_label": "answerable",
+      "pred_label": "escalate",
+      "trap": "none",
+      "hit": true,
+      "label_match": false,
+      "citations": [
+        "D015:C1",
+        "D015:C2",
+        "D015:C3",
+        "D017:C1",
+        "D017:C2",
+        "D017:C3",
+        "D017:C4",
+        "D030:C1"
+      ],
+      "answer_snippet": "[ESCALATE] The question asks about 'intern' eligibility, which is ambiguous or undefined in the governing policy. Escala"
+    },
+    {
+      "id": "Q036",
+      "question": "A team wants to make a INR 2,50,000 purchase. What approvals",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D018:C1",
+        "D018:C2",
+        "D018:C3",
+        "D018:C4",
+        "D021:C1",
+        "D035:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q038",
+      "question": "Must a vendor gift worth INR 4,000 be declared?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D018:C1",
+        "D018:C2",
+        "D018:C3",
+        "D018:C4",
+        "D021:C1",
+        "D035:C1",
+        "D035:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q039",
+      "question": "Must a vendor gift worth INR 4,000 be declared?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D019:C2",
+        "D019:C3",
+        "D019:C4",
+        "D022:C1",
+        "D036:C1",
+        "D036:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q040",
+      "question": "Is moonlighting on a personal side project allowed?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D002:C1",
+        "D002:C4",
+        "D021:C3",
+        "D023:C2",
+        "D025:C3",
+        "D034:C3",
+        "D035:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q042",
+      "question": "Can a personal device be used to access production systems u",
+      "gold_label": "answerable",
+      "pred_label": "conflict",
+      "trap": "none",
+      "hit": false,
+      "label_match": false,
+      "citations": [
+        "D025:C3",
+        "D026:C1",
+        "D026:C2"
+      ],
+      "answer_snippet": "[CONFLICT] A genuine conflict exists that cannot be safely auto-resolved. Surface both documents and escalate to the app"
+    },
+    {
+      "id": "Q043",
+      "question": "If a personal device used for work is lost, what must the em",
+      "gold_label": "refuse",
+      "pred_label": "answer",
+      "trap": "T3",
+      "hit": true,
+      "label_match": false,
+      "citations": [
+        "D011:C1",
+        "D023:C1",
+        "D023:C2",
+        "D025:C3",
+        "D033:C1",
+        "D034:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q044",
+      "question": "Where can Restricted data (e.g., customer PII) be stored?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D009:C1",
+        "D011:C1",
+        "D011:C2",
+        "D023:C2",
+        "D032:C1",
+        "D034:C1",
+        "D034:C2",
+        "D034:C3"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q045",
+      "question": "Under what condition can Confidential data be shared with an",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D009:C1",
+        "D011:C1",
+        "D011:C2",
+        "D021:C2",
+        "D025:C3",
+        "D032:C1",
+        "D034:C1",
+        "D034:C2",
+        "D034:C3"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q047",
+      "question": "Within how many days must the Ethics Committee report findin",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D009:C3",
+        "D028:C2",
+        "D033:C1",
+        "D033:C2",
+        "D033:C3",
+        "D037:C2",
+        "D039:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q048",
+      "question": "Can an employee post confidential company information on the",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D021:C3",
+        "D023:C1",
+        "D025:C3",
+        "D032:C1",
+        "D032:C2",
+        "D032:C3",
+        "D033:C1",
+        "D034:C1",
+        "D034:C2",
+        "D034:C3"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q049",
+      "question": "How long is maternity leave under company policy?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D006:C1",
+        "D006:C3",
+        "D006:C4",
+        "D028:C1",
+        "D028:C4",
+        "D038:C1",
+        "D038:C2",
+        "D038:C3"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q050",
+      "question": "How many days of paternity leave are granted?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D005:C1",
+        "D005:C4",
+        "D027:C1",
+        "D037:C1",
+        "D037:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q052",
+      "question": "How long must background verification agency reports be reta",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D001:C4",
+        "D005:C4",
+        "D009:C1",
+        "D009:C2",
+        "D009:C3",
+        "D011:C1",
+        "D027:C1",
+        "D033:C3",
+        "D039:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q053",
+      "question": "Who reviews discrepancies found in a background check after ",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D001:C4",
+        "D009:C2",
+        "D021:C2",
+        "D032:C2",
+        "D033:C1",
+        "D033:C2",
+        "D033:C3",
+        "D039:C1",
+        "D039:C2",
+        "D039:C3"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q054",
+      "question": "Are gifts to government officials ever permitted, regardless",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D018:C1",
+        "D018:C3",
+        "D021:C1",
+        "D023:C2",
+        "D035:C1",
+        "D035:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q056",
+      "question": "Are facilitation payments explicitly prohibited?",
+      "gold_label": "refuse",
+      "pred_label": "answer",
+      "trap": "T4",
+      "hit": true,
+      "label_match": false,
+      "citations": [
+        "D001:C3",
+        "D005:C3",
+        "D018:C1",
+        "D018:C2",
+        "D021:C3",
+        "D035:C1"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q057",
+      "question": "How many days per week must employees currently come into th",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D003:C1",
+        "D004:C1",
+        "D028:C1",
+        "D031:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q059",
+      "question": "What is the WFH equipment allowance amount?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "T3",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D002:C3",
+        "D015:C2",
+        "D017:C2",
+        "D019:C3",
+        "D025:C2",
+        "D030:C1",
+        "D030:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q061",
+      "question": "What is the daily meal allowance for an employee traveling i",
+      "gold_label": "conflict",
+      "pred_label": "escalate",
+      "trap": "T2",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D003:C1",
+        "D006:C1",
+        "D006:C2",
+        "D016:C2",
+        "D017:C1",
+        "D017:C2",
+        "D017:C3",
+        "D030:C1",
+        "D041:C1"
+      ],
+      "answer_snippet": "[ESCALATE] The question asks about 'intern' eligibility, which is ambiguous or undefined in the governing policy. Escala"
+    },
+    {
+      "id": "Q063",
+      "question": "During the South Region festive campaign, can a regional sal",
+      "gold_label": "conflict",
+      "pred_label": "conflict",
+      "trap": "T2",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D036:C1",
+        "D036:C2",
+        "D036:C3",
+        "D043:C1",
+        "D043:C2"
+      ],
+      "answer_snippet": "[CONFLICT] A genuine conflict exists that cannot be safely auto-resolved. Surface both documents and escalate to the app"
+    },
+    {
+      "id": "Q064",
+      "question": "Are field engineers using shared kiosk devices at remote pla",
+      "gold_label": "conflict",
+      "pred_label": "conflict",
+      "trap": "T2",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D014:C3",
+        "D025:C3",
+        "D026:C1",
+        "D044:C1",
+        "D044:C2"
+      ],
+      "answer_snippet": "[CONFLICT] A genuine conflict exists that cannot be safely auto-resolved. Surface both documents and escalate to the app"
+    },
+    {
+      "id": "Q065",
+      "question": "Is there a stipend for employees who rent a co-working space",
+      "gold_label": "refuse",
+      "pred_label": "refuse",
+      "trap": "T4",
+      "hit": true,
+      "label_match": true,
+      "citations": [],
+      "answer_snippet": "[REFUSE] The corpus contains no policy provision for 'co-working'. Refuse the request as not covered by company policies"
+    },
+    {
+      "id": "Q067",
+      "question": "Is there an employee referral bonus program?",
+      "gold_label": "refuse",
+      "pred_label": "refuse",
+      "trap": "T4",
+      "hit": true,
+      "label_match": true,
+      "citations": [],
+      "answer_snippet": "[REFUSE] The corpus contains no policy provision for 'referral bonus'. Refuse the request as not covered by company poli"
+    },
+    {
+      "id": "Q068",
+      "question": "Are part-time employees entitled to the same 24-day Flexible",
+      "gold_label": "escalate",
+      "pred_label": "escalate",
+      "trap": "T5",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D003:C1",
+        "D003:C4",
+        "D007:C1",
+        "D007:C2",
+        "D007:C3",
+        "D025:C2",
+        "D028:C4",
+        "D031:C2",
+        "D038:C1"
+      ],
+      "answer_snippet": "[ESCALATE] The question asks about 'part-time' eligibility, which is ambiguous or undefined in the governing policy. Esc"
+    },
+    {
+      "id": "Q070",
+      "question": "Do contractors need to complete MDM enrollment under the BYO",
+      "gold_label": "escalate",
+      "pred_label": "escalate",
+      "trap": "T5",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D003:C4",
+        "D014:C3",
+        "D024:C1",
+        "D024:C2",
+        "D025:C2",
+        "D025:C3",
+        "D026:C1",
+        "D026:C2",
+        "D026:C3",
+        "D034:C2",
+        "D044:C1",
+        "D044:C2"
+      ],
+      "answer_snippet": "[ESCALATE] The question asks about 'contractor' eligibility, which is ambiguous or undefined in the governing policy. Es"
+    },
+    {
+      "id": "Q071",
+      "question": "Is an employee still in their probation period eligible for ",
+      "gold_label": "escalate",
+      "pred_label": "escalate",
+      "trap": "T5",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D003:C4",
+        "D004:C2",
+        "D007:C1",
+        "D007:C3",
+        "D028:C4",
+        "D031:C2",
+        "D038:C1",
+        "D038:C2",
+        "D038:C3"
+      ],
+      "answer_snippet": "[ESCALATE] The question asks about 'probation' eligibility, which is ambiguous or undefined in the governing policy. Esc"
+    },
+    {
+      "id": "Q073",
+      "question": "Can personal devices access company email under the current ",
+      "gold_label": "answerable",
+      "pred_label": "conflict",
+      "trap": "none",
+      "hit": false,
+      "label_match": false,
+      "citations": [
+        "D025:C3",
+        "D026:C2"
+      ],
+      "answer_snippet": "[CONFLICT] A genuine conflict exists that cannot be safely auto-resolved. Surface both documents and escalate to the app"
+    },
+    {
+      "id": "Q074",
+      "question": "What is the notice period for a Director resigning?",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D003:C2",
+        "D006:C1",
+        "D006:C2",
+        "D006:C3",
+        "D006:C4",
+        "D010:C2",
+        "D028:C1",
+        "D028:C4",
+        "D038:C1"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q075",
+      "question": "What must a contractor complete before being granted company",
+      "gold_label": "answerable",
+      "pred_label": "answer",
+      "trap": "none",
+      "hit": true,
+      "label_match": true,
+      "citations": [
+        "D018:C3",
+        "D025:C1",
+        "D025:C2",
+        "D025:C3",
+        "D027:C2"
+      ],
+      "answer_snippet": "[ANSWER] Answer directly, citing the governing clause(s) below."
+    },
+    {
+      "id": "Q076",
+      "question": "How is contractor access to customer data monitored?",
+      "gold_label": "answerable",
+      "pred_label": "conflict",
+      "trap": "none",
+      "hit": true,
+      "label_match": false,
+      "citations": [
+        "D025:C3",
+        "D026:C1",
+        "D026:C2",
+        "D026:C3"
+      ],
+      "answer_snippet": "[CONFLICT] A genuine conflict exists that cannot be safely auto-resolved. Surface both documents and escalate to the app"
+    },
+    {
+      "id": "Q078",
+      "question": "What must a salesperson do before sharing a product roadmap ",
+      "gold_label": "answerable",
+      "pred_label": "conflict",
+      "trap": "none",
+      "hit": false,
+      "label_match": false,
+      "citations": [
+        "D025:C3",
+        "D026:C1"
+      ],
+      "answer_snippet": "[CONFLICT] A genuine conflict exists that cannot be safely auto-resolved. Surface both documents and escalate to the app"
+    },
+    {
+      "id": "Q080",
+      "question": "What compensating control is required at sites where field e",
+      "gold_label": "answerable",
+      "pred_label": "conflict",
+      "trap": "none",
+      "hit": true,
+      "label_match": false,
+      "citations": [
+        "D014:C3",
+        "D044:C1",
+        "D044:C2"
+      ],
+      "answer_snippet": "[CONFLICT] A genuine conflict exists that cannot be safely auto-resolved. Surface both documents and escalate to the app"
+    }
+  ]
+}
