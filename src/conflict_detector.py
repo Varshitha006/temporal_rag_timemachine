@@ -1,24 +1,18 @@
 """
 conflict_detector.py
 ---------------------
-V2.1: Enhanced conflict detection using clause-level semantic relationships.
+V3: KG-integrated conflict detection.
 
 Detects and classifies conflicts between in-force documents.
 
-For any two in-force documents sharing a category (identified via the KG),
-this module determines:
-  1. Whether a real conflict exists on the queried topic (using clause
-     relationship analysis, not just same-category matching).
-  2. If yes, whether it CAN be auto-resolved by the precedence rules, or
-     must be escalated to a human reviewer.
-  3. The final decision label: 'answer' | 'conflict' | 'escalate' | 'refuse'
-
-V2 Changes:
-  - Uses clause_relationship.py to skip supplementary/scope-narrowing pairs
-  - Adds clause-level silence detection for T3 traps (e.g., BYOD v1.0 silent
-    on lost-device reporting, Anti-Bribery v1.0 silent on facilitation payments)
-  - Query-aware scope filtering: only flag a scoped document (addendum/circular)
-    as conflicting if the user's question actually targets that document's scope
+V3 Changes vs V2:
+  - decide() now accepts the MultiDiGraph and reads conflict relationships
+    FROM GRAPH EDGES instead of looping over DOC_PAIR_RELATIONSHIPS.
+  - _is_superseding() replaced by is_superseding_path() graph traversal.
+  - Every decision-log line that consulted the graph says so, e.g.:
+      "KG: D034 --conflict_risk-- D042"
+  - Cross-category pairs are found by traversing conflict_risk edges,
+    not by iterating the hand-written DOC_PAIR_RELATIONSHIPS dict.
 """
 
 import re
@@ -26,8 +20,14 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Optional
 
+import networkx as nx
+
 from src.corpus_loader import Clause, DocMeta
-from src.knowledge_graph import build_knowledge_graph, get_authority_tier
+from src.knowledge_graph import (
+    is_superseding_path,
+    get_authority_tier,
+    get_conflict_pairs,
+)
 from src.temporal_filter import FilteredClause
 from src.clause_relationship import (
     is_supplementary,
@@ -35,7 +35,7 @@ from src.clause_relationship import (
     query_targets_scoped_doc,
     doc_is_silent_on_topic,
     DOC_SCOPE_KEYWORDS,
-    DOC_PAIR_RELATIONSHIPS,
+    DOC_PAIR_RELATIONSHIPS,   # kept as fallback when graph is not passed
 )
 
 
@@ -104,6 +104,7 @@ class ConflictReport:
     resolution_rule: str        # which tier resolved it (or why it wasn't resolved)
     requires_escalation: bool   # True if system should NOT silently resolve
     escalation_reason: str      # reason for escalation (authority mismatch, etc.)
+    kg_edge: str = ""           # KG edge label that flagged this pair (for trace)
 
 
 @dataclass
@@ -118,55 +119,60 @@ class DecisionResult:
 
 # ── Core Conflict Detection ───────────────────────────────────────────────────
 
-def _is_superseding(new_doc: str, old_doc: str, metadata: dict[str, DocMeta]) -> bool:
-    """
-    Check if new_doc explicitly or transitively supersedes old_doc via the metadata supersedes chain.
-    """
-    curr = metadata.get(new_doc)
-    while curr and curr.supersedes:
-        if curr.supersedes == old_doc:
-            return True
-        curr = metadata.get(curr.supersedes)
-    return False
-
-
 def _analyse_pair(
     doc_a: str,
     doc_b: str,
     category: str,
     metadata: dict[str, DocMeta],
+    graph: Optional[nx.MultiDiGraph] = None,
+    kg_edge: str = "",
 ) -> ConflictReport:
     """
     Analyse a conflict-risk pair and return a ConflictReport.
     Applies the three-tier precedence rules from charter.md §3.
+
+    Args:
+        doc_a, doc_b: The pair of document IDs to compare.
+        category:     The policy category for this conflict.
+        metadata:     Full metadata dict.
+        graph:        The KG MultiDiGraph (used for Tier-1 supersession check).
+        kg_edge:      Human-readable KG edge label for the decision log.
     """
     meta_a = metadata[doc_a]
     meta_b = metadata[doc_b]
 
-    # ── Tier 1: Explicit or Transitive Supersession ───────────────────────────
-    if _is_superseding(doc_b, doc_a, metadata):
+    # ── Tier 1: Explicit or Transitive Supersession ────────────────────────
+    # Use graph-based path query when available; fall back to metadata walk.
+    if graph is not None:
+        b_supersedes_a = is_superseding_path(graph, doc_b, doc_a)
+        a_supersedes_b = is_superseding_path(graph, doc_a, doc_b)
+    else:
+        b_supersedes_a = _is_superseding_fallback(doc_b, doc_a, metadata)
+        a_supersedes_b = _is_superseding_fallback(doc_a, doc_b, metadata)
+
+    if b_supersedes_a:
         return ConflictReport(
             doc_a=doc_a, doc_b=doc_b, category=category,
             auto_resolved=True, winner=doc_b, loser=doc_a,
             resolution_rule=f"Tier-1: supersession ({doc_b} supersedes {doc_a})",
             requires_escalation=False, escalation_reason="",
+            kg_edge=kg_edge,
         )
-    if _is_superseding(doc_a, doc_b, metadata):
+    if a_supersedes_b:
         return ConflictReport(
             doc_a=doc_a, doc_b=doc_b, category=category,
             auto_resolved=True, winner=doc_a, loser=doc_b,
             resolution_rule=f"Tier-1: supersession ({doc_a} supersedes {doc_b})",
             requires_escalation=False, escalation_reason="",
+            kg_edge=kg_edge,
         )
 
-    # ── Authority mismatch check (before specificity) ────────────────────────
-    # If one doc is from a non-owning authority trying to override a compliance-critical
-    # control, we must escalate regardless of whether it's "more specific."
+    # ── Authority mismatch check (before specificity) ─────────────────────
     mismatch_a = _is_authority_mismatch(doc_a, category, metadata)
     mismatch_b = _is_authority_mismatch(doc_b, category, metadata)
 
     if mismatch_a or mismatch_b:
-        offender = doc_a if mismatch_a else doc_b
+        offender  = doc_a if mismatch_a else doc_b
         owner_doc = doc_b if mismatch_a else doc_a
         return ConflictReport(
             doc_a=doc_a, doc_b=doc_b, category=category,
@@ -178,9 +184,10 @@ def _analyse_pair(
                 f"{owner_doc} (owned by {metadata[owner_doc].issuing_authority}) without "
                 f"authority over the '{category}' policy category."
             ),
+            kg_edge=kg_edge,
         )
 
-    # ── Tier 2: Time-boxed Emergency / Temporary Specificity ───────────────────
+    # ── Tier 2: Time-boxed Emergency / Temporary Specificity ─────────────
     a_timeboxed = meta_a.sunset_date is not None
     b_timeboxed = meta_b.sunset_date is not None
 
@@ -190,6 +197,7 @@ def _analyse_pair(
             auto_resolved=True, winner=doc_a, loser=doc_b,
             resolution_rule="Tier-2: specificity (A is time-boxed/narrower, applies within its window)",
             requires_escalation=False, escalation_reason="",
+            kg_edge=kg_edge,
         )
 
     if b_timeboxed and not a_timeboxed:
@@ -198,16 +206,33 @@ def _analyse_pair(
             auto_resolved=True, winner=doc_b, loser=doc_a,
             resolution_rule="Tier-2: specificity (B is time-boxed/narrower, applies within its window)",
             requires_escalation=False, escalation_reason="",
+            kg_edge=kg_edge,
         )
 
-    # ── True conflict (T2 trap): non-superseded competing policies ────────────
+    # ── True conflict (T2 trap): no supersession, no clear specificity ────
     return ConflictReport(
         doc_a=doc_a, doc_b=doc_b, category=category,
         auto_resolved=False, winner=None, loser=None,
         resolution_rule="Competing policies: no explicit supersession link between active documents",
         requires_escalation=True,
         escalation_reason=f"Conflict between {doc_a} ({meta_a.title}) and {doc_b} ({meta_b.title}).",
+        kg_edge=kg_edge,
     )
+
+
+def _is_superseding_fallback(
+    new_doc: str, old_doc: str, metadata: dict[str, DocMeta]
+) -> bool:
+    """
+    Fallback O(depth) metadata chain walk used when graph is not available.
+    Prefer is_superseding_path() when a graph is passed.
+    """
+    curr = metadata.get(new_doc)
+    while curr and curr.supersedes:
+        if curr.supersedes == old_doc:
+            return True
+        curr = metadata.get(curr.supersedes)
+    return False
 
 
 # ── Decision Gate ─────────────────────────────────────────────────────────────
@@ -217,9 +242,10 @@ def decide(
     metadata: dict[str, DocMeta],
     query_date: date,
     question: Optional[str] = None,
+    graph: Optional[nx.MultiDiGraph] = None,
 ) -> DecisionResult:
     """
-    V2 Enhanced decision gate: determines the final label for the query.
+    V3 KG-integrated decision gate: determines the final label for the query.
 
     Flow:
       1. Filter out non-binding decoy documents (e.g. D040).
@@ -227,24 +253,28 @@ def decide(
       3. If no in-force clauses → refuse (T4).
       4. Check for unmentioned out-of-corpus topics → refuse (T4).
       5. Check for ambiguous population scope edge-cases → escalate (T5).
-      6. Check for conflicts using clause-level relationships → conflict/escalate (T2).
+      6. Check for conflicts using KG edges → conflict/escalate (T2).
       7. Otherwise → answer.
+
+    Args:
+        filtered:    Output from temporal_filter().
+        metadata:    Full metadata dict.
+        query_date:  The as-of date.
+        question:    Original user question text.
+        graph:       The MultiDiGraph KG.  When supplied, conflict edges are
+                     read from graph instead of DOC_PAIR_RELATIONSHIPS dict.
+                     Every consulted edge is logged as "KG: Dxxx --rel-- Dyyy".
     """
     log: list[str] = []
 
-    # ── Step 1: Separate in-force from expired, ignoring non-binding decoy doc D040
+    # ── Step 1: Separate in-force from expired, skip non-binding D040 ─────
     in_force = [fc for fc in filtered if fc.in_force and fc.clause.doc_id != "D040"]
     expired  = [fc for fc in filtered if not fc.in_force]
 
     log.append(f"In-force clauses: {len(in_force)}, Expired clauses: {len(expired)}")
 
-    # ── Step 1b: Clause-level silence detection (T3 traps) ────────────────
-    # Check if ALL in-force clauses come from docs that are SILENT on the
-    # question's topic. This catches cases like:
-    #   - Q043: BYOD v1.0 (D023) is silent on lost-device reporting
-    #   - Q056: Anti-Bribery v1.0 (D035) is silent on facilitation payments
+    # ── Step 1b: Clause-level silence detection (T3 traps) ─────────────────
     if question and in_force:
-        # Check each unique in-force doc_id for silence on the question topic
         in_force_doc_ids = {fc.clause.doc_id for fc in in_force}
         silent_doc_ids = {
             doc_id for doc_id in in_force_doc_ids
@@ -269,7 +299,6 @@ def decide(
                 ),
             )
 
-        # Remove silent doc's clauses from in_force for downstream processing
         if silent_doc_ids:
             # Record the categories of the silent docs BEFORE removing them
             silent_doc_categories = {
@@ -279,10 +308,7 @@ def decide(
             log.append(f"Removing silent docs {silent_doc_ids} from in-force set")
             in_force = [fc for fc in in_force if fc.clause.doc_id not in silent_doc_ids]
 
-            # ── Critical check: after removing silent docs, are there still
-            # docs from the SAME category as the silent ones? If not, the
-            # remaining docs are cross-category noise from semantic search
-            # and should NOT be used to answer. → REFUSE
+            # After removing silent docs, check if same-category fallback exists
             remaining_categories = {fc.clause.meta.category for fc in in_force}
             orphaned_categories = silent_doc_categories - remaining_categories
             if orphaned_categories:
@@ -317,7 +343,7 @@ def decide(
             ),
         )
 
-    # ── Step 2: Check for unmentioned out-of-corpus topics (T4 refusal traps)
+    # ── Step 2: Check for unmentioned out-of-corpus topics (T4 refusal) ───
     if question:
         q_lower = question.lower()
         refusal_keywords = [
@@ -326,7 +352,6 @@ def decide(
         ]
         for kw in refusal_keywords:
             if kw in q_lower:
-                # Check if kw is mentioned in any in-force clause text
                 has_mention = any(kw in fc.clause.text.lower() for fc in in_force)
                 if not has_mention:
                     log.append(f"Query topic '{kw}' not mentioned in any in-force clause -> REFUSE (T4)")
@@ -341,10 +366,7 @@ def decide(
                         ),
                     )
 
-    # ── Step 3: Check for ambiguous population scope edge-cases (T5 escalation traps)
-    # Uses word-boundary matching with optional plural 's?' (\b...s?\b) so that
-    # e.g. "contractor" and "contractors" both match, but "intern" does NOT match
-    # inside "international" — preventing false escalations (Q035 bug fix).
+    # ── Step 3: Ambiguous population scope edge-cases (T5 escalation) ─────
     if question:
         q_lower = question.lower()
         ambiguous_pop_triggers = [
@@ -356,7 +378,6 @@ def decide(
             ("cross-regional", ["gifting", "festive"]),
         ]
         for pop, topics in ambiguous_pop_triggers:
-            # Word-boundary with optional 's' handles singular & plural
             if re.search(r'\b' + re.escape(pop) + r's?\b', q_lower) and any(t in q_lower for t in topics):
                 log.append(f"Ambiguous population scope '{pop}' detected -> ESCALATE (T5)")
                 return DecisionResult(
@@ -370,22 +391,18 @@ def decide(
                     ),
                 )
 
-    # ── Step 4: Check for conflicts using CLAUSE-LEVEL relationships ──────
-    # V2 Enhancement: Instead of treating all same-category pairs as potential
-    # conflicts, we use the pre-computed clause-level relationships to:
-    #   a) Skip supplementary pairs (different sub-topics, no conflict)
-    #   b) Skip scope-narrowing pairs when the query doesn't target the narrow scope
-    #   c) Only flag genuine conflicts
-    #   d) Check known cross-category conflict pairs
+    # ── Step 4: Conflict detection via KG edges ────────────────────────────
+    # V3: When graph is available, we walk conflict_risk edges directly.
+    # For same-category pairs, the graph edges replace the DOC_PAIR_RELATIONSHIPS loop.
+    # Cross-category pairs are also found via graph edges (conflict_risk exists in
+    # the MultiDiGraph for known cross-category conflicts like D034↔D042).
 
-    # First, filter out scoped documents when query doesn't target their scope
+    # First, filter out scoped documents when the query doesn't target their scope
     in_force_for_conflict = list(in_force)
     if question:
-        scoped_doc_ids_to_remove = set()
+        scoped_doc_ids_to_remove: set[str] = set()
         for fc in in_force_for_conflict:
             doc_id = fc.clause.doc_id
-            # If this doc has a defined scope and the query doesn't target it,
-            # remove it from conflict consideration
             if doc_id in DOC_SCOPE_KEYWORDS:
                 if not query_targets_scoped_doc(question, doc_id):
                     scoped_doc_ids_to_remove.add(doc_id)
@@ -398,67 +415,106 @@ def decide(
                 if fc.clause.doc_id not in scoped_doc_ids_to_remove
             ]
 
-    # Group remaining in-force clauses by category
-    by_category: dict[str, set[str]] = {}
-    for fc in in_force_for_conflict:
-        cat = fc.clause.meta.category
-        by_category.setdefault(cat, set()).add(fc.clause.doc_id)
+    # Collect unique in-force doc IDs for conflict checking
+    in_force_doc_ids = {fc.clause.doc_id for fc in in_force_for_conflict}
 
     conflict_reports: list[ConflictReport] = []
     checked_pairs: set[tuple[str, str]] = set()
 
-    # 1. Check same-category document pairs
-    for cat, doc_ids in by_category.items():
-        if len(doc_ids) < 2:
-            continue   # Only one doc in this category — no conflict possible
+    if graph is not None:
+        # ── KG path: read conflict_risk edges from the graph ───────────────
+        # For every in-force doc, follow conflict_risk edges to find peers
+        for doc_a in in_force_doc_ids:
+            if doc_a not in graph.nodes:
+                continue
+            for doc_b in graph.successors(doc_a):
+                if doc_b not in in_force_doc_ids or doc_b == doc_a:
+                    continue
+                # Only process conflict_risk edges
+                edges = graph[doc_a][doc_b]
+                if "conflict_risk" not in edges:
+                    continue
 
-        doc_id_list = sorted(doc_ids)
-        for i, a in enumerate(doc_id_list):
-            for b in doc_id_list[i + 1:]:
-                pair = tuple(sorted([a, b]))
+                pair = tuple(sorted([doc_a, doc_b]))
+                if pair in checked_pairs:
+                    continue
                 checked_pairs.add(pair)
 
-                # Check clause-level relationship before creating conflict report
-                if is_supplementary(a, b, question=question):
+                # KG trace line in the decision log
+                kg_edge_label = f"KG: {doc_a} --conflict_risk-- {doc_b}"
+                log.append(kg_edge_label)
+
+                # Supplementary pairs are not real conflicts
+                if is_supplementary(doc_a, doc_b, question=question):
                     log.append(
-                        f"Docs {a} vs {b} [{cat}]: supplementary (different sub-topics) — skipping conflict"
+                        f"Docs {doc_a} vs {doc_b}: supplementary (different sub-topics) — skipping"
                     )
                     continue
 
-                # If we reach here, it's either a genuine conflict or unknown
-                report = _analyse_pair(a, b, cat, metadata)
+                # Use the category of doc_a for the report (cross-category conflict
+                # is still assigned to the "primary" category for resolution)
+                cat_a = metadata[doc_a].category
+                report = _analyse_pair(doc_a, doc_b, cat_a, metadata, graph, kg_edge_label)
                 conflict_reports.append(report)
                 log.append(
-                    f"Conflict check {a} vs {b} [{cat}]: "
+                    f"Conflict check {doc_a} vs {doc_b} [{cat_a}]: "
                     f"resolved={report.auto_resolved}, "
                     f"escalate={report.requires_escalation}, "
                     f"rule={report.resolution_rule}"
                 )
 
-    # 2. Check known cross-category conflict pairs in in-force set
-    in_force_doc_ids = {fc.clause.doc_id for fc in in_force_for_conflict}
-    for (doc_a, doc_b), rel in DOC_PAIR_RELATIONSHIPS.items():
-        pair = tuple(sorted([doc_a, doc_b]))
-        if pair in checked_pairs:
-            continue
-        if rel == "conflicts" and doc_a in in_force_doc_ids and doc_b in in_force_doc_ids:
-            cat_a = metadata[doc_a].category
-            cat_b = metadata[doc_b].category
-            if cat_a != cat_b:
-                checked_pairs.add(pair)
-                if not is_supplementary(doc_a, doc_b, question=question):
-                    report = _analyse_pair(doc_a, doc_b, cat_a, metadata)
+    else:
+        # ── Fallback path (no graph): replicate V2 same-category + curated ─
+        # 1. Same-category pairs
+        by_category: dict[str, set[str]] = {}
+        for fc in in_force_for_conflict:
+            cat = fc.clause.meta.category
+            by_category.setdefault(cat, set()).add(fc.clause.doc_id)
+
+        for cat, doc_ids in by_category.items():
+            if len(doc_ids) < 2:
+                continue
+            doc_id_list = sorted(doc_ids)
+            for i, a in enumerate(doc_id_list):
+                for b in doc_id_list[i + 1:]:
+                    pair = tuple(sorted([a, b]))
+                    checked_pairs.add(pair)
+                    if is_supplementary(a, b, question=question):
+                        log.append(
+                            f"Docs {a} vs {b} [{cat}]: supplementary — skipping conflict"
+                        )
+                        continue
+                    report = _analyse_pair(a, b, cat, metadata)
                     conflict_reports.append(report)
                     log.append(
-                        f"Cross-category conflict check {doc_a} vs {doc_b} [{cat_a}/{cat_b}]: "
+                        f"Conflict check {a} vs {b} [{cat}]: "
                         f"resolved={report.auto_resolved}, "
                         f"escalate={report.requires_escalation}, "
                         f"rule={report.resolution_rule}"
                     )
 
-    # ── Step 5: Determine overall label ───────────────────────────────────
+        # 2. Known cross-category pairs from curated dict
+        for (doc_a, doc_b), rel in DOC_PAIR_RELATIONSHIPS.items():
+            pair = tuple(sorted([doc_a, doc_b]))
+            if pair in checked_pairs:
+                continue
+            if rel == "conflicts" and doc_a in in_force_doc_ids and doc_b in in_force_doc_ids:
+                cat_a = metadata[doc_a].category
+                cat_b = metadata[doc_b].category
+                if cat_a != cat_b:
+                    checked_pairs.add(pair)
+                    if not is_supplementary(doc_a, doc_b, question=question):
+                        report = _analyse_pair(doc_a, doc_b, cat_a, metadata)
+                        conflict_reports.append(report)
+                        log.append(
+                            f"Cross-category conflict check {doc_a} vs {doc_b} [{cat_a}/{cat_b}]: "
+                            f"resolved={report.auto_resolved}, "
+                            f"escalate={report.requires_escalation}, "
+                            f"rule={report.resolution_rule}"
+                        )
+
+    # ── Step 5: Determine overall label ────────────────────────────────────
     if not conflict_reports:
-        # Clean answer — no conflicts detected
         log.append("No conflicts detected → ANSWER")
         return DecisionResult(
             label="answer",
@@ -468,10 +524,7 @@ def decide(
             answer_hint="Answer directly, citing the governing clause(s) below.",
         )
 
-    # In policy QA evaluation:
-    # - Tier-1 supersessions resolve cleanly to 'answer' (new version fully governs).
-    # - Tier-2 competing active policies / specificity exceptions or authority mismatches
-    #   represent actual policy conflicts (T2 trap) and must return label='conflict'.
+    # Determine if there are any unresolved (active) conflicts
     is_active_conflict = any(
         (not r.auto_resolved) or r.resolution_rule.startswith("Tier-2") or r.requires_escalation
         for r in conflict_reports
@@ -479,7 +532,6 @@ def decide(
 
     if is_active_conflict:
         log.append("Conflict detected between active policies → ESCALATE/CONFLICT")
-        # Collect all relevant clauses (both sides of each conflict)
         relevant_ids = set()
         for r in conflict_reports:
             relevant_ids.add(r.doc_a)
@@ -500,8 +552,7 @@ def decide(
             ),
         )
 
-    # All conflicts auto-resolved by precedence rules (explicit supersession or recency)
-    # Collect all losing doc_ids to filter them out of governing clauses
+    # All conflicts auto-resolved by precedence rules
     losing_doc_ids = {r.loser for r in conflict_reports if r.auto_resolved and r.loser}
     governing = [fc for fc in in_force if fc.clause.doc_id not in losing_doc_ids]
 

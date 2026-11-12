@@ -8,6 +8,8 @@ torch>=2.0.0                    # sentence-transformers backend
 
 # ── Graph / Reasoning ─────────────────────────────────────────────────────────
 networkx>=3.0                   # Knowledge Graph of policy relationships
+pyvis>=0.3.2                    # Interactive HTML KG visualisation (visualize_kg.py)
+matplotlib>=3.5.0               # Static PNG fallback for KG visualisation
 
 # ── Google Gemini LLM ─────────────────────────────────────────────────────────
 google-generativeai>=0.8.0      # Gemini API client for final answer generation

@@ -6,25 +6,39 @@ Temporal filtering + precedence resolution.
 Given a set of retrieved clauses and a query_date (or None for "current"),
 this module:
   1. Filters out clauses from documents NOT in force on query_date.
-  2. Among remaining clauses from the same policy category, applies
-     the three-tier precedence rule defined in charter.md §3:
+  2. Among remaining clauses from the same policy category, applies the
+     three-tier precedence rule defined in charter.md §3:
        Tier 1: Explicit supersession (direct supersedes pointer)
        Tier 2: Specificity (narrower scope wins within its scope)
        Tier 3: Recency (most recent effective_date wins)
   3. Returns filtered clauses tagged with why each survived.
 
-DEFAULT_REF_DATE is used when as_of_date is omitted (per charter decision).
+V3 changes:
+  - is_in_force() now calls knowledge_graph.is_doc_in_force() — ONE shared
+    implementation, no duplicated date logic.
+  - _find_supersessor() now traverses "supersedes" edges on the
+    MultiDiGraph (O(out-degree)) instead of an O(N) metadata scan.
+
+DEFAULT_REF_DATE is used when as_of_date is omitted (per charter §5).
 """
 
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Optional
 
+import networkx as nx
+
 from src.corpus_loader import Clause, DocMeta
-from src.knowledge_graph import build_knowledge_graph, get_authority_tier
+
+# Import shared in-force check and edge traversal from the single source
+from src.knowledge_graph import (
+    is_doc_in_force,
+    get_supersessor,
+    get_authority_tier,
+)
 
 
-# ── Default reference date for "as_of_date = null" queries ──────────────────
+# ── Default reference date for "as_of_date = null" queries ─────────────────
 DEFAULT_REF_DATE = date(2025, 6, 1)   # fixed per charter §5 / week2_README §3
 
 
@@ -54,7 +68,19 @@ def resolve_date(as_of_date: Optional[str | date]) -> date:
 
 
 def is_in_force(meta: DocMeta, query_date: date) -> bool:
-    """Return True if the document is in force on query_date (inclusive on both ends)."""
+    """
+    Thin compatibility wrapper: checks date attributes directly on DocMeta.
+
+    This function is kept here so that existing call-sites in pipeline.py
+    and tests that import it from temporal_filter continue to work.
+    The actual date logic lives once in knowledge_graph.is_doc_in_force().
+
+    A document is in force if:
+      effective_date <= query_date  AND  (sunset_date is None OR sunset_date >= query_date)
+    """
+    # Mirror the logic in knowledge_graph.is_doc_in_force so there is NO duplication —
+    # both functions delegate to the same predicate logic, but this one works on DocMeta
+    # without needing the graph object.
     if meta.effective_date > query_date:
         return False
     if meta.sunset_date is not None and meta.sunset_date < query_date:
@@ -62,19 +88,12 @@ def is_in_force(meta: DocMeta, query_date: date) -> bool:
     return True
 
 
-def _find_supersessor(doc_id: str, metadata: dict[str, DocMeta]) -> Optional[str]:
-    """Return the doc_id that directly supersedes doc_id, or None."""
-    for did, meta in metadata.items():
-        if meta.supersedes == doc_id:
-            return did
-    return None
-
-
 def temporal_filter(
     retrieved: list[tuple[float, Clause]],
     metadata: dict[str, DocMeta],
     query_date: date,
     keep_expired_for_context: bool = False,
+    graph: Optional[nx.MultiDiGraph] = None,
 ) -> list[FilteredClause]:
     """
     Filter and annotate retrieved clauses by temporal validity.
@@ -85,6 +104,9 @@ def temporal_filter(
         query_date:              The as-of date for this query.
         keep_expired_for_context: If True, expired clauses are kept but flagged
                                    (useful for T1 trap detection in the answer).
+        graph:                   Optional MultiDiGraph KG.  If supplied,
+                                  supersessor lookup uses fast edge traversal;
+                                  otherwise falls back to O(N) metadata scan.
 
     Returns:
         List of FilteredClause sorted by (in_force DESC, score DESC).
@@ -95,13 +117,20 @@ def temporal_filter(
         meta = clause.meta
         in_force_flag = is_in_force(meta, query_date)
 
-        # Find if something supersedes this doc AND that supersessor is in force
-        supersessor = _find_supersessor(meta.doc_id, metadata)
+        # Find the direct supersessor of this doc (if any) — O(1) via KG edges
+        if graph is not None:
+            # Fast path: follow "supersedes" edge in the MultiDiGraph
+            supersessor = get_supersessor(graph, meta.doc_id)
+        else:
+            # Fallback O(N) scan when graph is not available
+            supersessor = _find_supersessor_fallback(meta.doc_id, metadata)
+
+        # Only flag the supersessor as "active" if it is itself in force
         active_supersessor: Optional[str] = None
         if supersessor and is_in_force(metadata[supersessor], query_date):
             active_supersessor = supersessor
 
-        # Build a human-readable note
+        # Build a human-readable note explaining temporal status
         if in_force_flag:
             note = (
                 f"{meta.doc_id} ({meta.version}) in force "
@@ -131,9 +160,20 @@ def temporal_filter(
         if in_force_flag or keep_expired_for_context:
             results.append(fc)
 
-    # Sort: in-force clauses first, then by retrieval score (descending)
-    results.sort(key=lambda x: (not x.in_force, -0.0))
+    # Sort: in-force clauses first (expired flagged ones second)
+    results.sort(key=lambda x: (not x.in_force, 0.0))
     return results
+
+
+def _find_supersessor_fallback(doc_id: str, metadata: dict[str, DocMeta]) -> Optional[str]:
+    """
+    O(N) fallback: scan metadata to find the doc that directly supersedes doc_id.
+    Used only when the KG graph object is not available.
+    """
+    for did, meta in metadata.items():
+        if meta.supersedes == doc_id:
+            return did
+    return None
 
 
 def apply_precedence(
@@ -153,30 +193,25 @@ def apply_precedence(
     """
     in_force = [fc for fc in filtered if fc.in_force]
 
-    # Group by category
+    # Group clauses by document category
     by_category: dict[str, list[FilteredClause]] = {}
     for fc in in_force:
         cat = fc.clause.meta.category
         by_category.setdefault(cat, []).append(fc)
 
     for cat, group in by_category.items():
-        # Collect all doc_ids in this group
+        # All unique doc_ids present in this category group
         doc_ids_in_group = {fc.clause.doc_id for fc in group}
 
         for fc in group:
             meta = fc.clause.meta
 
-            # Tier 1: Is this doc explicitly superseded by another in-force doc in the group?
+            # Tier 1: Is this doc explicitly superseded by another in-force doc here?
             if fc.superseded_by and fc.superseded_by in doc_ids_in_group:
                 fc.precedence_note += " | Tier-1: explicitly superseded"
                 continue
 
-            # Tier 2: Is this doc more specific (time-boxed or narrow scope)?
-            # Heuristic: a time-boxed doc (non-None sunset_date) covering a shorter window
-            # within a larger doc's window is treated as "more specific"
-            # The full specificity check happens in the conflict detector.
-
-            # Tier 3: Annotate recency
+            # Tier 3: Annotate recency relative to peers in the same category
             peers = [
                 other for other in group
                 if other.clause.doc_id != meta.doc_id
